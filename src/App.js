@@ -1,25 +1,61 @@
-import logo from './logo.svg';
+import { useState } from 'react';
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+const config = [
+  [1, 1, 0],
+  [1, 1, 1],
+  [1, 1, 1]
+]
+
+export default function App() {
+
+  const [cellState, setCellState] = useState([]);
+  const [deactivateCell, setDeactivateCell] = useState(false);
+
+  const deactivateCellFn = () => {
+    setDeactivateCell(true)
+    const interval = setInterval(() => {
+      setCellState((currentCellState) => {
+        const newCellState = currentCellState.slice();
+        newCellState.shift();
+        if(newCellState.length === 0) {
+          setDeactivateCell(false);
+          clearInterval(interval);
+        }
+        return newCellState;
+      })
+    }, 300)
+  }
+
+  const cellClickHandler = (index) => {
+    const newCellState = [...cellState, index]
+    setCellState(newCellState);
+    if(newCellState.length === config.flat().filter(Boolean).length) {
+      deactivateCellFn();
+    }
+  }
+
+
+  return <div className="flex">
+    <div className='grid-wrapper'  style={{
+          gridTemplateColumns: `repeat(${config[0].length}, 100fr)`,
+        }}>
+        {
+          config.flat().map((value, index) => {
+            return value ? 
+              <Cell 
+                value={value} 
+                onClick={() => cellClickHandler(index)} 
+                isFilled={cellState.includes(index)} 
+              /> 
+            : <span />
+          })
+        }
     </div>
-  );
+  </div>
+
 }
 
-export default App;
+function Cell({ value, onClick, isFilled}) {
+  return <button disabled = {isFilled}className={isFilled? "cell cell-activated" : "cell"} onClick={onClick}>cell</button>
+}
